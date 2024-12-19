@@ -5,14 +5,16 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PhoneIcon from "@mui/icons-material/Phone";
-import CopyToClipboard from "react-copy-to-clipboard";
+// import CopyToClipboard from "react-copy-to-clipboard";
 import Peer from "simple-peer";
 import io from "socket.io-client";
+import Image from "next/image";
+import copy from 'clipboard-copy';
 
 const socket = io.connect("https://videochat-app-kt94.onrender.com");
 
 const Videochat = () => {
-    const [me, setMe] = useState("");
+  const [me, setMe] = useState("");
   const [stream, setStream] = useState(null);
   const [receivingCall, setReceivingCall] = useState(false);
   const [caller, setCaller] = useState("");
@@ -21,7 +23,10 @@ const Videochat = () => {
   const [idToCall, setIdToCall] = useState("");
   const [callEnded, setCallEnded] = useState(false);
   const [name, setName] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  
+  
 
   const myVideo = useRef(null);
   const userVideo = useRef(null);
@@ -37,7 +42,9 @@ const Videochat = () => {
             myVideo.current.srcObject = stream;
           }
         })
-        .catch((error) => console.error("Error accessing media devices:", error));
+        .catch((error) =>
+          console.error("Error accessing media devices:", error)
+        );
 
       socket.on("me", (id) => setMe(id));
       socket.on("callUser", (data) => {
@@ -106,19 +113,31 @@ const Videochat = () => {
     setCallEnded(true);
     connectionRef.current?.destroy();
   };
-
-  const handleCopy = () => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyClick = async () => {
+    try {
+      if (!me) {
+        throw new Error("No ID to copy");
+      }
+      await navigator.clipboard.writeText(me); // Use the `me` state value
+      setIsCopied(true);
+  
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy text to clipboard", error);
+    }
   };
-
+  
+ 
   return (
-     <div className="bg-custom-gradient min-h-screen flex flex-col pt-10">
+    <div className="bg-custom-gradient min-h-screen flex flex-col pt-10">
       <h1 className="text-center font-bold text-4xl text-white">Chatt.io</h1>
       <div className="md:grid md:grid-cols-6  xl:flex   items-center justify-center xl:mt-24">
-       <div className="md:col-span-3 xl:mt-0 xl:p-0 mt-5 p-5
+        <div
+          className="md:col-span-3 xl:mt-0 xl:p-0 mt-5 p-5
 
-       ">
+       "
+        >
           <div className="xl:mr-12">
             <video
               playsInline
@@ -138,10 +157,10 @@ const Videochat = () => {
               />
             )}
           </div>
-       </div>
-       {/* right section */}
+        </div>
+        {/* right section */}
 
-       <div className="md:col-span-3 ml-4  xl:mt-0 xl:p-0 ">
+        <div className="md:col-span-3 ml-4  xl:mt-0 xl:p-0 ">
           <div
             className="flex flex-col items-center justify-center bg-white mt- rounded-md p-5 "
             style={{ width: "380px", height: "380px" }}
@@ -151,26 +170,36 @@ const Videochat = () => {
               variant="outlined"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={{ marginBottom: "20px" }}
+              style={{ marginBottom: "20px", marginTop: "20px" }}
             />
-            <CopyToClipboard text={me} onCopy={handleCopy}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AssignmentIcon fontSize="large" />}
-                fullWidth
-                style={{
-                  marginBottom: "20px",
-                  maxWidth: "210px",
-                  height: "56px",
-                }}
-              >
-                Copy ID
-              </Button>
-            </CopyToClipboard>
-            {copied && (
-              <p className="text-green-600 text-sm mb-4">Successfully copied!</p>
-            )}
+
+<div className="flex flex-col">
+  <TextField
+    label="Your ID"
+    variant="outlined"
+    value={me}
+    
+    InputProps={{
+      readOnly: true, // Make the field read-only
+    }}
+  />
+  <button
+    className="btn btn-primary"
+    onClick={handleCopyClick}
+    style={{
+      padding: "10px",
+      marginTop: "10px",
+      borderRadius: "5px",
+      marginBottom:"15px",
+      backgroundColor: isCopied ? "green" : "blue",
+      color: "white",
+    }}
+  >
+    {isCopied ? "Copied!" : "Copy My ID"}
+  </button>
+</div>
+
+
             <TextField
               label="ID to call"
               variant="outlined"
@@ -179,7 +208,11 @@ const Videochat = () => {
             />
             <div className="mt-5">
               {callAccepted && !callEnded ? (
-                <Button variant="contained" color="secondary" onClick={leaveCall}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={leaveCall}
+                >
                   End Call
                 </Button>
               ) : (
@@ -202,16 +235,20 @@ const Videochat = () => {
             {receivingCall && !callAccepted && (
               <div className="caller">
                 <h1 className="mb-2">{name} is calling...</h1>
-                <Button variant="contained" color="primary" onClick={answerCall}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={answerCall}
+                >
                   Answer
                 </Button>
               </div>
             )}
           </div>
-       </div>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Videochat
+export default Videochat;
