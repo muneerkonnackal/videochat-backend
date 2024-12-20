@@ -118,10 +118,9 @@ const Videochat = () => {
       if (!me) {
         throw new Error("No ID to copy");
       }
-      await navigator.clipboard.writeText(me); // Use the `me` state value
+      await navigator.clipboard.writeText(me); // id for call
       setIsCopied(true);
   
-      // Reset the copied state after 2 seconds
       setTimeout(() => setIsCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy text to clipboard", error);
@@ -144,7 +143,8 @@ const Videochat = () => {
               muted
               ref={myVideo}
               autoPlay
-              style={{ width: "500px", borderRadius: "15px" }}
+              style={{ width: "500px", borderRadius: "15px",
+                transform: "scaleX(1)" }}
             />
           </div>
           <div>
@@ -153,7 +153,8 @@ const Videochat = () => {
                 playsInline
                 ref={userVideo}
                 autoPlay
-                style={{ width: "500px", borderRadius: "15px" }}
+                style={{ width: "500px", borderRadius: "15px" ,
+                    transform: "scaleX(1)"}}
               />
             )}
           </div>
